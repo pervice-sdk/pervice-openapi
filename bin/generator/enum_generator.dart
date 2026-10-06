@@ -78,10 +78,10 @@ final class EnumGenerator extends Generator<EnumGeneratorContext> {
 
     // 6. Generate the codec and decoding branches.
     buffer.writeln('/// OpenAPI codec converting between the enum and its string key.');
-    buffer.writeln('class _Codec extends OpenApiCodec<$enumName, String> {');
+    buffer.writeln('class _Codec extends OpenApiCodec<$enumName, $keyType> {');
     buffer.writeln('\tconst new();\n');
     buffer.writeln('\t@override');
-    buffer.writeln('\t$enumName decode(String key) => switch (key) {');
+    buffer.writeln('\t$enumName decode($keyType key) => switch (key) {');
 
     for (final field in fields) {
       buffer.writeln("\t\t${literal(field.value)} => .${field.key},");
@@ -93,7 +93,7 @@ final class EnumGenerator extends Generator<EnumGeneratorContext> {
     // 7. Generate the encoding method.
     buffer.writeln();
     buffer.writeln('\t@override');
-    buffer.writeln('\tString encode($enumName value) => value.key;');
+    buffer.writeln('\t$keyType encode($enumName value) => value.key;');
     buffer.writeln('}');
   }
 
@@ -110,7 +110,7 @@ final class EnumGenerator extends Generator<EnumGeneratorContext> {
     final isValid = RegExp(r'^[A-Za-z_][A-Za-z0-9_]*$').hasMatch(name);
     final isKeyword = Keyword.keywords.containsKey(name);
 
-    return isValid && isKeyword ? fallback : name;
+    return !isValid || isKeyword ? fallback : name;
   }
 
   /// Determines the shared key type and rejects null or mixed-type values.
