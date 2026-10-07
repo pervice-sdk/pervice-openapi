@@ -26,6 +26,9 @@ final class EnumGenerator extends Generator<EnumGeneratorContext> {
   @override
   bool get hasCodec => true;
 
+  /// Member names reserved by Dart enums and the generated key and codec.
+  static const reserved = {'key', 'codec', 'index', 'values'};
+
   @override
   void generate(EnumGeneratorContext context) {
     // 1. Validate enum values.
@@ -47,7 +50,10 @@ final class EnumGenerator extends Generator<EnumGeneratorContext> {
 
     // 3. Convert values to Dart identifiers.
     final fields = values.mapIndexed<_Field>((index, value) {
-      return (key: _key(index, value), value: value);
+      return (
+        key: memberName(_key(index, value), context.config, reserved: reserved),
+        value: value,
+      );
     });
 
     // 4. Generate the enum declaration and cases.

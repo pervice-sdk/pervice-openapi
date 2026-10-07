@@ -14,6 +14,8 @@ final class Config {
     required this.model,
     required this.encodeMethodName,
     required this.decodeMethodName,
+    this.conflictPrefix = r'$',
+    this.conflictSuffix = '',
   });
 
   /// OpenAPI documents and their output roots.
@@ -33,6 +35,12 @@ final class Config {
 
   /// Name of the generated model codec decoding method.
   final String decodeMethodName;
+
+  /// Prefix added only to conflicting member names across all generators.
+  final String conflictPrefix;
+
+  /// Suffix added only to conflicting member names across all generators.
+  final String conflictSuffix;
 
   /// Loads `pervice_openapi.yaml` from the current working directory.
   static Config load() {
@@ -62,6 +70,8 @@ final class Config {
       model: .decode(yaml['model']),
       encodeMethodName: yaml['encode_method_name'] ?? 'encode',
       decodeMethodName: yaml['decode_method_name'] ?? 'decode',
+      conflictPrefix: yaml['conflict_prefix'] ?? '_',
+      conflictSuffix: yaml['conflict_suffix'] ?? '',
     );
   }
 }

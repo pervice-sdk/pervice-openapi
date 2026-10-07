@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:openapi_spec_plus/v31.dart';
 import 'package:path/path.dart' as p;
 import 'package:recase/recase.dart';
@@ -10,11 +11,28 @@ import '../config/config.dart';
 abstract class Generator<T> {
   const new();
 
+  static const objectReserved = {
+    'hashCode',
+    'runtimeType',
+    'toString',
+    'noSuchMethod',
+  };
+
   /// Whether the generated type provides an OpenAPI codec.
   bool get hasCodec => false;
 
   /// Writes Dart source to the buffer in [context].
   void generate(T context);
+
+  /// Adds the configured affixes only when a member name conflicts.
+  String memberName(String name, Config config, {Set<String> reserved = const {}}) {
+    final $1 = reserved.contains(name);
+    final $2 = objectReserved.contains(name);
+    final $3 = Keyword.keywords[name]?.isReservedWord == true;
+
+    final conflict = $1 || $2 || $3;
+    return conflict ? '${config.conflictPrefix}$name${config.conflictSuffix}' : name;
+  }
 
   /// Resolves a schema to a Dart type, including references and collections.
   String schemaType(Schema schema, Config config, Map<String, Schema> schemas) {

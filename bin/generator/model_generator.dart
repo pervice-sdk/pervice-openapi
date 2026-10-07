@@ -30,6 +30,9 @@ final class ModelGenerator extends Generator<ModelGeneratorContext> {
   @override
   bool get hasCodec => true;
 
+  /// Member name reserved by the generated model codec.
+  static const reserved = {'codec'};
+
   @override
   void generate(ModelGeneratorContext context) {
     // 1. Determine the model name.
@@ -46,7 +49,7 @@ final class ModelGenerator extends Generator<ModelGeneratorContext> {
         .map<_Field>(
           (entry) => (
             jsonKey: entry.key,
-            name: entry.key.camelCase,
+            name: memberName(entry.key.camelCase, context.config, reserved: reserved),
             type: schemaType(entry.value, context.config, context.schemas),
             nullable: !required.contains(entry.key) || entry.value.isNullable,
           ),

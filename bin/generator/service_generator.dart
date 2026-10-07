@@ -33,6 +33,34 @@ typedef _Field = ({
 final class ServiceGenerator extends Generator<ServiceGeneratorContext> {
   const new();
 
+  /// Member names reserved by OpenApiService and its inherited service API.
+  static const reserved = {
+    'decode',
+    'fetchData',
+    'status',
+    'isLoading',
+    'isRefreshing',
+    'isError',
+    'canRethrow',
+    'canDebugPrint',
+    'data',
+    'error',
+    'maybeData',
+    'maybeError',
+    'fail',
+    'done',
+    'load',
+    'refresh',
+    'request',
+    'requestOrNull',
+    'notifyUpdated',
+    'dispose',
+    'addListener',
+    'removeListener',
+    'notifyListeners',
+    'hasListeners',
+  };
+
   @override
   void generate(ServiceGeneratorContext context) {
     // 1. Resolve the service, response and request fields.
@@ -52,12 +80,20 @@ final class ServiceGenerator extends Generator<ServiceGeneratorContext> {
     final apiName = p.basenameWithoutExtension(context.barrelName).pascalCase;
     final request = context.operation.requestBody;
     final media = request?.content.entries.first;
+
+    // Apply conflict affixes to field names that collide with service members.
+    String fieldName(String name) => memberName(
+      name,
+      context.config,
+      reserved: reserved,
+    );
+
     final fields = <_Field>[
       // Convert path, query, header and cookie parameters into fields.
       for (final parameter in context.parameters)
         (
           key: parameter.name!,
-          name: parameter.name!.camelCase,
+          name: fieldName(parameter.name!.camelCase),
           type: schemaType(parameter.schema!, context.config, context.schemas),
           required: parameter.location!.name == 'path' || parameter.required == true,
           location: parameter.location!.name,
@@ -67,7 +103,7 @@ final class ServiceGenerator extends Generator<ServiceGeneratorContext> {
       if (media != null)
         (
           key: 'request',
-          name: 'request',
+          name: fieldName('request'),
           type: schemaType(media.value.schema!, context.config, context.schemas),
           required: request!.$required == true,
           location: 'body',
@@ -126,7 +162,7 @@ final class ServiceGenerator extends Generator<ServiceGeneratorContext> {
       _getter(buffer, 'String', 'contentType', literal(media.key));
 
       final body = groups['body']!.single;
-      _getter(buffer, 'Object?', 'body', 'request${body.required ? '' : '?'}.encode()');
+      _getter(buffer, 'Object?', 'body', '${body.name}${body.required ? '' : '?'}.encode()');
     }
 
     // 5. Decode the successful response.
