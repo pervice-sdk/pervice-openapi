@@ -78,6 +78,9 @@ final class EnumGenerator extends Generator<EnumGeneratorContext> {
       '\n'
       '\t/// OpenAPI codec for encoding and decoding [$enumName].\n'
       '\tstatic const codec = _Codec();\n'
+      '\n'
+      '\t@override\n'
+      "\tString toString() => '$enumName.\$key';\n"
       '}\n'
       '\n',
     );

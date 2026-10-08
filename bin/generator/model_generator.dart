@@ -84,11 +84,19 @@ final class ModelGenerator extends Generator<ModelGeneratorContext> {
       buffer.writeln('\tfinal ${field.type}${field.nullable ? '?' : ''} ${field.name};');
     }
 
-    buffer.writeln();
-    buffer.writeln('\t/// OpenAPI codec for encoding and decoding [$modelName].');
-    buffer.writeln('\tstatic const codec = _Codec();');
-    buffer.writeln('}');
-    buffer.writeln();
+    // A comma-separated list of 'fieldName: value' pairs for toString().
+    final toStringFields = fields.map((field) => '${field.name}: \$${field.name}');
+
+    buffer.write(
+      '\n'
+      '\t/// OpenAPI codec for encoding and decoding [$modelName].\n'
+      '\tstatic const codec = _Codec();\n'
+      '\n'
+      '\t@override\n'
+      "\tString toString() => '$modelName(${toStringFields.join(', ')})';\n"
+      '}\n'
+      '\n',
+    );
 
     // 5. Generate the codec and decoding method.
     buffer.writeln('/// OpenAPI codec converting between [$modelName] and a JSON object.');

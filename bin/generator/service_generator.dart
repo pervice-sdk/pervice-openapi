@@ -173,6 +173,15 @@ final class ServiceGenerator extends Generator<ServiceGeneratorContext> {
       buffer.writeln('\t}');
     }
 
+    // A comma-separated list of 'fieldName: value' pairs for toString().
+    final toStringFields = fields.map((field) => '${field.name}: \$${field.name}');
+
+    buffer.write(
+      '\n'
+      '\t@override\n'
+      "\tString toString() => '$serviceName(${toStringFields.join(', ')})';\n",
+    );
+
     buffer.writeln('}');
   }
 
