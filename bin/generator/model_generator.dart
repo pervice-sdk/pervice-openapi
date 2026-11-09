@@ -30,8 +30,8 @@ final class ModelGenerator extends Generator<ModelGeneratorContext> {
   @override
   bool get hasCodec => true;
 
-  /// Member name reserved by the generated model codec.
-  static const reserved = {'codec'};
+  /// Member names reserved by the codec and Equatable.
+  static const reserved = {'codec', 'props', 'stringify'};
 
   @override
   void generate(ModelGeneratorContext context) {
@@ -66,10 +66,10 @@ final class ModelGenerator extends Generator<ModelGeneratorContext> {
       'import \'$barrelImport\';\n'
       '\n'
       '/// Model representing the $modelName schema.\n'
-      'final class $modelName {\n',
+      'final class $modelName extends OpenApiModel {\n',
     );
 
-    buffer.write('\tconst new({\n');
+    buffer.write(fields.isEmpty ? '\tconst new(' : '\tconst new({\n');
 
     for (final field in fields) {
       buffer.write(
@@ -77,15 +77,15 @@ final class ModelGenerator extends Generator<ModelGeneratorContext> {
       );
     }
 
-    buffer.writeln('\t});\n');
+    buffer.writeln(fields.isEmpty ? ');\n' : '\t});\n');
 
     // 4. Generate fields and the codec constant.
     for (final field in fields) {
       buffer.writeln('\tfinal ${field.type}${field.nullable ? '?' : ''} ${field.name};');
     }
 
-    // A comma-separated list of 'fieldName: value' pairs for toString().
-    final toStringFields = fields.map((field) => '${field.name}: \$${field.name}');
+    // A comma-separated list of field names and values for OpenApiModel.fields.
+    final fieldEntries = fields.map((field) => '\'${field.name}\': ${field.name}').join(', ');
 
     buffer.write(
       '\n'
@@ -93,7 +93,7 @@ final class ModelGenerator extends Generator<ModelGeneratorContext> {
       '\tstatic const codec = _Codec();\n'
       '\n'
       '\t@override\n'
-      "\tString toString() => '$modelName(${toStringFields.join(', ')})';\n"
+      "\tMap<String, Object?> get fields => {$fieldEntries};\n"
       '}\n'
       '\n',
     );

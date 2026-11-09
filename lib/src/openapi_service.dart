@@ -86,7 +86,9 @@ abstract class OpenApiService<T> extends Service<T> {
     if (data == null || data == '') return null as T;
 
     // Parse JSON responses before applying the service decoder.
-    final isJson = response.headers.value(Headers.contentTypeHeader)?.contains('json') == true;
+    final contentTypeHeader = response.headers.value(Headers.contentTypeHeader);
+    final isJson = contentTypeHeader?.contains('json') == true;
+
     return decode(data is String && data.isNotEmpty && isJson ? jsonDecode(data) : data);
   }
 }
