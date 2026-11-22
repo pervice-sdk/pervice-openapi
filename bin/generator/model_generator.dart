@@ -60,7 +60,7 @@ final class ModelGenerator extends Generator<ModelGeneratorContext> {
     final barrelImport = relativeBarrelPath(context.path, context.barrelName);
 
     buffer.write(
-      '// ignore_for_file: unused_import\n'
+      '// ignore_for_file: unnecessary_question_mark, unused_import\n'
       'import \'package:pervice_openapi/pervice_openapi.dart\';\n'
       '\n'
       'import \'$barrelImport\';\n'
@@ -93,12 +93,29 @@ final class ModelGenerator extends Generator<ModelGeneratorContext> {
       '\tstatic const codec = _Codec();\n'
       '\n'
       '\t@override\n'
-      "\tMap<String, Object?> get fields => {$fieldEntries};\n"
-      '}\n'
-      '\n',
+      "\tMap<String, Object?> get fields => {$fieldEntries};\n",
     );
 
-    // 5. Generate the codec and decoding method.
+    // A comma-separated list of optional named parameters for the copyWith method.
+    final copyWithParameters = fields.map((field) => '${field.type}? ${field.name}').join(', ');
+
+    // A comma-separated list of constructor arguments with current field values as fallbacks.
+    final copyWithArguments = fields.map((field) => '${field.name}: ${field.name} ?? this.${field.name}').join(', ');
+
+    // 5. Generate the copyWith method and close the model class.
+    buffer.write(
+      '\n'
+      '\t/// Returns a new [$modelName] with the specified fields replaced,\n'
+      '\t/// leaving any unspecified fields with their current values.\n'
+      '\t$modelName copyWith({$copyWithParameters}) {\n'
+      '\t\treturn .new($copyWithArguments);\n'
+      '\t}\n'
+      '}\n',
+    );
+
+    buffer.writeln();
+
+    // 6. Generate the codec and decoding method.
     buffer.writeln('/// OpenAPI codec converting between [$modelName] and a JSON object.');
     buffer.writeln('class _Codec extends OpenApiCodec<$modelName, Map<String, dynamic>> {');
     buffer.writeln('\tconst new();');
@@ -116,7 +133,7 @@ final class ModelGenerator extends Generator<ModelGeneratorContext> {
     buffer.writeln();
     buffer.writeln('\t@override');
 
-    // 6. Generate the encoding method.
+    // 7. Generate the encoding method.
     buffer.writeln('\tMap<String, dynamic> ${context.config.encodeMethodName}($modelName value) => {');
 
     for (final field in fields) {
