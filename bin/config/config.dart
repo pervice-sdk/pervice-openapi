@@ -14,8 +14,9 @@ final class Config {
     required this.model,
     required this.encodeMethodName,
     required this.decodeMethodName,
-    this.conflictPrefix = r'$',
-    this.conflictSuffix = '',
+    required this.conflictPrefix,
+    required this.conflictSuffix,
+    required this.header,
   });
 
   /// OpenAPI documents and their output roots.
@@ -41,6 +42,9 @@ final class Config {
 
   /// Suffix added only to conflicting member names across all generators.
   final String conflictSuffix;
+
+  /// Custom header prepended to every generated Dart file.
+  final String header;
 
   /// Loads `pervice_openapi.yaml` from the current working directory.
   static Config load() {
@@ -72,6 +76,7 @@ final class Config {
       decodeMethodName: yaml['decode_method_name'] ?? 'decode',
       conflictPrefix: yaml['conflict_prefix'] ?? '_',
       conflictSuffix: yaml['conflict_suffix'] ?? '',
+      header: yaml['header'] ?? '',
     );
   }
 }
